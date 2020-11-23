@@ -1,5 +1,6 @@
 import os
 import json
+import configparser
 
 import pymysql
 from xkcdpass import xkcd_password as xp
@@ -9,22 +10,25 @@ from tljh.hooks import hookimpl
 
 @hookimpl
 def tljh_new_user_create(username):
-    password = generate_password()
-    create_user(username, password)
-    generate_datajoint_config(username, password)
+    config = configparser.ConfigParser()
+    config.read("/srv/tljh-db.ini")
+
+    password = generate_password(config)
+    create_user(config, username, password)
+    generate_datajoint_config(config, username, password)
 
 
-def generate_password():
+def generate_password(config):
     wordfile = xp.locate_wordfile()
     words = xp.generate_wordlist(wordfile)
     return xp.generate_xkcdpassword(
-        words, numwords=os.environ.get("TLJH_DB_NUMWORDS", 6), delimiter=os.environ.get("TLJH_DB_DELIMITER", "-")
+        words, numwords=config["DEFAULT"].get("NumWords", 6), delimiter=config["DEFAULT"].get("Delimiter", "-")
     )
 
 
-def create_user(username, password):
+def create_user(config, username, password):
     connection = pymysql.connect(
-        host=os.environ["TLJH_DB_HOST"], user=os.environ["TLJH_DB_USER"], password=os.environ["TLJH_DB_PASSWORD"]
+        host=config["DEFAULT"]["Host"], user=config["DEFAULT"]["User"], password=config["DEFAULT"]["Password"]
     )
     try:
         with connection.cursor() as cursor:
@@ -39,12 +43,12 @@ def create_user(username, password):
         connection.close()
 
 
-def generate_datajoint_config(username, password):
+def generate_datajoint_config(config, username, password):
     dj_config_data = {
-        "database.host": os.environ["TLJH_DB_HOST"],
+        "database.host": config["DEFAULT"]["Host"],
         "database.password": password,
         "database.user": username,
-        "database.port": os.environ.get("TLJH_DB_PORT", 3306),
+        "database.port": config["DEFAULT"].get("Port", 3306),
         "database.reconnect": True,
         "connection.init_function": None,
         "connection.charset": "",
