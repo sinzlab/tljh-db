@@ -61,5 +61,5 @@ def generate_datajoint_config(config, username, password):
         "database.use_tls": None,
         "enable_python_native_blobs": False,
     }
-    with open(os.path.join("/home", "jupyter-" + username, "dj_local_conf.json"), "w") as dj_config_file:
+    with open(os.path.join("/home", username, "dj_local_conf.json"), "w") as dj_config_file:
         json.dump(dj_config_data, dj_config_file, indent=True)
