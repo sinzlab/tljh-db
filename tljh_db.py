@@ -31,14 +31,15 @@ def generate_password(config):
 
 
 def create_user(config, username, password):
+    original_username = get_original_username(username)
     connection = pymysql.connect(
         host=config["DEFAULT"]["Host"], user=config["DEFAULT"]["User"], password=config["DEFAULT"]["Password"]
     )
     try:
         with connection.cursor() as cursor:
             sql_statements = [
-                fr"CREATE USER '{username}'@'%' IDENTIFIED BY '{password}'",
-                fr"GRANT ALL PRIVILEGES ON `{username}\_%`.* TO '{username}'@'%'",
+                fr"CREATE USER '{original_username}'@'%' IDENTIFIED BY '{password}'",
+                fr"GRANT ALL PRIVILEGES ON `{original_username}\_%`.* TO '{original_username}'@'%'",
             ]
             for sql in sql_statements:
                 cursor.execute(sql)
@@ -47,11 +48,15 @@ def create_user(config, username, password):
         connection.close()
 
 
+def get_original_username(username):
+    return username.split("-")[-1]
+
+
 def generate_datajoint_config(config, username, password):
     dj_config_data = {
         "database.host": config["DEFAULT"]["Host"],
         "database.password": password,
-        "database.user": username,
+        "database.user": get_original_username(username),
         "database.port": config["DEFAULT"].get("Port", 3306),
         "database.reconnect": True,
         "connection.init_function": None,
