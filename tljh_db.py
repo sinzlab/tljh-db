@@ -10,12 +10,16 @@ from tljh.hooks import hookimpl
 
 @hookimpl
 def tljh_new_user_create(username):
-    config = configparser.ConfigParser()
-    config.read("/srv/tljh-db.ini")
-
+    config = read_config()
     password = generate_password(config)
     create_user(config, username, password)
     generate_datajoint_config(config, username, password)
+
+
+def read_config():
+    config = configparser.ConfigParser()
+    config.read("/srv/tljh-db.ini")
+    return config
 
 
 def generate_password(config):
