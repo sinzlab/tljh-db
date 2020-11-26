@@ -1,6 +1,7 @@
 import os
 import json
 import configparser
+from pwd import getpwnam
 
 import pymysql
 from xkcdpass import xkcd_password as xp
@@ -14,6 +15,7 @@ def tljh_new_user_create(username):
     password = generate_password(config)
     create_user(config, username, password)
     generate_datajoint_config(config, username, password)
+    change_dj_config_file_permissions(username)
 
 
 def read_config():
@@ -70,5 +72,14 @@ def generate_datajoint_config(config, username, password):
         "database.use_tls": None,
         "enable_python_native_blobs": False,
     }
-    with open(os.path.join("/home", username, ".datajoint_config.json"), "w") as dj_config_file:
+    with open(get_dj_config_file_path(username), "w") as dj_config_file:
         json.dump(dj_config_data, dj_config_file, indent=True)
+
+
+def get_dj_config_file_path(username):
+    return os.path.join("/home", username, ".datajoint_config.json")
+
+
+def change_dj_config_file_permissions(username):
+    pw = getpwnam(username)
+    os.chown(get_dj_config_file_path(username), pw.pw_uid, pw.pw_gid)
