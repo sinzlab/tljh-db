@@ -51,7 +51,7 @@ def create_user(config, username, password):
 
 
 def get_original_username(username):
-    return username.split("-")[-1]
+    return username[8:]
 
 
 def generate_datajoint_config(config, username, password):
