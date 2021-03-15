@@ -1,12 +1,11 @@
-import os
-import json
 import configparser
+import json
+import os
 from pwd import getpwnam
 
 import pymysql
-from xkcdpass import xkcd_password as xp
-
 from tljh.hooks import hookimpl
+from xkcdpass import xkcd_password as xp
 
 
 @hookimpl
