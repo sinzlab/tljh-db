@@ -1,3 +1,4 @@
+"""The littlest jupyterhub plugin for working with mysql databases."""
 import configparser
 import json
 import os
